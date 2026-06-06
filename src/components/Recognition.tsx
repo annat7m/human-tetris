@@ -5,11 +5,29 @@ import {
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
 import type { Mode, RecognitionProps, ShapeId } from "#/lib/recognition-types";
+import { PointingDetector } from "#/lib/pointing-recognition";
+import type { PointingDebug } from "#/lib/pointing-recognition";
 import {
   armStatesFromLandmarks,
   classifyShapeFromLandmarks,
   type ArmState,
 } from "#/lib/pose-classifier";
+
+// The Engine/Recognition contract is just RecognitionProps. `onDebug` is an
+// extra, optional tap for the test harness only — it is NOT part of the
+// boundary and the real game ignores it.
+type RecognitionComponentProps = RecognitionProps & {
+  onDebug?: (debug: PointingDebug) => void;
+  /** Override the preview container styling (e.g. to fill a fixed-height slot). */
+  className?: string;
+  /** Bump this to re-arm the detector mid-phase (test harness only). */
+  resetSignal?: number;
+};
+
+const DEFAULT_CONTAINER_CLASS =
+  "relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black";
+
+const DEBUG_INTERVAL_MS = 80; // ~12 debug updates/sec, independent of frame rate
 
 // CDN sources for the MediaPipe WASM runtime + pose model.
 // Swap to self-hosted assets later if we want offline / deterministic builds.
@@ -20,14 +38,6 @@ const POSE_MODEL =
 
 type Status = "idle" | "loading" | "running" | "error";
 
-/**
- * Recognition — the Engine/Recognition boundary component.
- *
- * Owns the camera + MediaPipe pose pipeline and renders a mirrored preview with
- * the skeleton overlay. During the 'making' phase it classifies the body pose
- * and fires `onShapeDetected` once per phase. Pointing (`onPoint`) is not yet
- * implemented (separate work).
- */
 // How long a single candidate shape must be held steady before we emit.
 // Time-based (not frame-count) so behavior is consistent across frame rates.
 const HOLD_MS = 450;
@@ -39,10 +49,23 @@ interface DebugInfo {
   detected: ShapeId | null;
 }
 
+/**
+ * Recognition — the Engine/Recognition boundary component.
+ *
+ * Owns the camera + MediaPipe pose pipeline and renders a mirrored preview with
+ * the skeleton overlay. Exactly one detection algorithm runs per frame,
+ * selected by `mode`: during 'making' it classifies the body pose and fires
+ * `onShapeDetected` once per phase; during 'pointing' it runs the corner
+ * pointing detector and fires `onPoint`.
+ */
 export default function Recognition({
   mode,
   onShapeDetected,
-}: RecognitionProps) {
+  onPoint,
+  onDebug,
+  className = DEFAULT_CONTAINER_CLASS,
+  resetSignal,
+}: RecognitionComponentProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
@@ -52,6 +75,15 @@ export default function Recognition({
   // Live refs so the rAF loop (set up once) always sees current values.
   const modeRef = useRef<Mode>(mode);
   const onShapeDetectedRef = useRef(onShapeDetected);
+
+  // Pointing algorithm + per-frame plumbing. Kept in refs so the render loop
+  // always sees the latest mode/callback without restarting.
+  const detectorRef = useRef<PointingDetector>(new PointingDetector());
+  const onPointRef = useRef(onPoint);
+  const onDebugRef = useRef(onDebug);
+  const lastTsRef = useRef<number | null>(null);
+  const lastDebugTsRef = useRef<number>(0);
+
   // Shape-detection state for the 'making' phase.
   const candidateRef = useRef<ShapeId | null>(null); // current stable-candidate
   const candidateSinceRef = useRef(0); // timestamp the candidate first appeared
@@ -68,14 +100,26 @@ export default function Recognition({
     detected: null,
   });
 
-  // Keep refs in sync without re-running the camera setup effect.
+  // Keep callback refs in sync without re-running the camera setup effect.
+  useEffect(() => {
+    onShapeDetectedRef.current = onShapeDetected;
+  }, [onShapeDetected]);
+
+  useEffect(() => {
+    onPointRef.current = onPoint;
+  }, [onPoint]);
+
+  useEffect(() => {
+    onDebugRef.current = onDebug;
+  }, [onDebug]);
+
+  // Each new phase emits at most once — reset all detection state on mode change.
   useEffect(() => {
     modeRef.current = mode;
-    onShapeDetectedRef.current = onShapeDetected;
-  }, [mode, onShapeDetected]);
-
-  // Each new phase emits at most once — reset detection state on mode change.
-  useEffect(() => {
+    // Pointing detector.
+    detectorRef.current.reset();
+    lastTsRef.current = null;
+    // Shape detector.
     candidateRef.current = null;
     candidateSinceRef.current = 0;
     emittedRef.current = false;
@@ -83,6 +127,13 @@ export default function Recognition({
     debugKeyRef.current = "";
     setDebug({ left: null, right: null, candidate: null, detected: null });
   }, [mode]);
+
+  // An explicit reset signal re-arms the pointing detector mid-phase (test harness).
+  useEffect(() => {
+    if (resetSignal === undefined) return;
+    detectorRef.current.reset();
+    lastTsRef.current = null;
+  }, [resetSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,6 +201,29 @@ export default function Recognition({
 
         const now = performance.now();
         const result = landmarker.detectForVideo(video, now);
+
+        // Pointing phase: feed the active pose to the algorithm. One simple
+        // call — all the logic lives in PointingDetector.
+        if (modeRef.current === "pointing" && result.landmarks.length > 0) {
+          const last = lastTsRef.current;
+          lastTsRef.current = now;
+          if (last != null) {
+            const corner = detectorRef.current.update(
+              result.landmarks[0],
+              (now - last) / 1000,
+            );
+            if (corner) onPointRef.current?.(corner);
+          }
+
+          // Surface internals to the harness at a throttled rate.
+          if (
+            onDebugRef.current &&
+            now - lastDebugTsRef.current >= DEBUG_INTERVAL_MS
+          ) {
+            lastDebugTsRef.current = now;
+            onDebugRef.current(detectorRef.current.getDebug());
+          }
+        }
 
         const ctx = canvas.getContext("2d");
         if (ctx) {
@@ -228,7 +302,7 @@ export default function Recognition({
   }, []);
 
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black">
+    <div className={className}>
       <video
         ref={videoRef}
         playsInline
