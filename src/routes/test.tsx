@@ -1,12 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
-import type { Corner, Mode, RecognitionProps } from '#/lib/recognition-types'
+import type {
+  Corner,
+  Mode,
+  RecognitionProps,
+  ShapeId,
+} from '#/lib/recognition-types'
 import type { PointingDebug } from '#/lib/pointing-recognition'
 
 export const Route = createFileRoute('/test')({ component: TestPage })
 
-// Recognition's onDebug + className are harness-only, so widen the prop type.
+// onShapeDetected + onPoint are the real Engine/Recognition contract; onDebug,
+// className and resetSignal are harness-only extras, so widen the prop type.
 type RecognitionComponentProps = RecognitionProps & {
   onDebug?: (debug: PointingDebug) => void
   className?: string
@@ -16,17 +22,19 @@ type RecognitionComponentProps = RecognitionProps & {
 // After a point locks, re-arm automatically so you can keep pointing.
 const AUTO_REARM_MS = 1200
 
-const PHASES: { mode: Mode; label: string }[] = [
-  { mode: 'making', label: 'Shape' },
-  { mode: 'pointing', label: 'Point' },
-  { mode: 'idle', label: 'Idle' },
+const PHASES: { mode: Mode; label: string; hint: string }[] = [
+  { mode: 'making', label: 'Shape', hint: 'form a body shape' },
+  { mode: 'pointing', label: 'Point', hint: 'point at a corner' },
+  { mode: 'idle', label: 'Idle', hint: 'recognition does nothing' },
 ]
 
 const CORNERS: Corner[] = ['TL', 'TR', 'BL', 'BR']
 
 function TestPage() {
-  const [mode, setMode] = useState<Mode>('pointing')
+  const [mode, setMode] = useState<Mode>('making')
   const [cameraOn, setCameraOn] = useState(false)
+
+  // Pointing-phase state.
   const [debug, setDebug] = useState<PointingDebug | null>(null)
   const [lastPoint, setLastPoint] = useState<Corner | null>(null)
   const [changeKey, setChangeKey] = useState(0)
@@ -35,6 +43,11 @@ function TestPage() {
   const [autoRearm, setAutoRearm] = useState(true)
   const prevCandidateRef = useRef<Corner | null>(null)
 
+  // Making-phase state: the onShapeDetected log.
+  const [log, setLog] = useState<{ shape: ShapeId; mode: Mode }[]>([])
+
+  // Recognition pulls in browser-only MediaPipe + getUserMedia, so load it
+  // lazily on the client to keep SSR happy.
   const [Recognition, setRecognition] =
     useState<ComponentType<RecognitionComponentProps> | null>(null)
 
@@ -89,12 +102,13 @@ function TestPage() {
     <main className="fixed inset-0 z-[55] flex flex-col gap-2 overflow-hidden bg-[var(--bg-base)] p-2 sm:p-3">
       {/* Compact top bar */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="island-kicker">Pointing Test</p>
+        <p className="island-kicker">Recognition Test</p>
         <div className="flex flex-wrap items-center gap-1.5">
           {PHASES.map((p) => (
             <button
               key={p.mode}
               type="button"
+              title={p.hint}
               onClick={() => setMode(p.mode)}
               className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                 mode === p.mode
@@ -116,7 +130,8 @@ function TestPage() {
           <button
             type="button"
             onClick={() => setAutoRearm((v) => !v)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            disabled={mode !== 'pointing'}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
               autoRearm
                 ? 'border-[rgba(50,143,151,0.5)] bg-[rgba(79,184,178,0.24)] text-[var(--lagoon-deep)]'
                 : 'border-[var(--chip-line)] bg-[var(--chip-bg)] text-[var(--sea-ink-soft)] hover:text-[var(--sea-ink)]'
@@ -143,6 +158,10 @@ function TestPage() {
               mode={mode}
               onPoint={handlePoint}
               onDebug={handleDebug}
+              onShapeDetected={(shape) => {
+                console.log('[test] onShapeDetected', shape)
+                setLog((l) => [{ shape, mode }, ...l].slice(0, 8))
+              }}
               resetSignal={resetSignal}
               className="relative h-full w-full overflow-hidden rounded-2xl bg-black"
             />
@@ -170,9 +189,12 @@ function TestPage() {
               lastPoint={lastPoint}
               fireKey={fireKey}
             />
+          ) : mode === 'making' ? (
+            <ShapeLog log={log} />
           ) : (
             <div className="grid min-h-0 place-items-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--chip-bg)] text-sm text-[var(--sea-ink-soft)]">
-              Switch to <code className="mx-1">pointing</code> to test
+              Switch to <code className="mx-1">making</code> or{' '}
+              <code className="mx-1">pointing</code> to test
             </div>
           )}
 
@@ -180,6 +202,29 @@ function TestPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+function ShapeLog({ log }: { log: { shape: ShapeId; mode: Mode }[] }) {
+  return (
+    <div className="min-h-0 overflow-auto rounded-2xl border border-[var(--line)] bg-[var(--chip-bg)] p-4">
+      <p className="island-kicker mb-2">onShapeDetected log</p>
+      {log.length === 0 ? (
+        <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
+          No shapes detected yet. In <code>making</code> mode, hold a body pose
+          steady for ~half a second.
+        </p>
+      ) : (
+        <ul className="m-0 list-none space-y-1 p-0 font-mono text-sm text-[var(--sea-ink)]">
+          {log.map((entry, i) => (
+            <li key={i}>
+              <b className="text-[var(--lagoon-deep)]">{entry.shape}</b>{' '}
+              <span className="opacity-60">({entry.mode})</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
