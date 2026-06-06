@@ -4,7 +4,25 @@ import {
   FilesetResolver,
   PoseLandmarker,
 } from '@mediapipe/tasks-vision'
-import type { RecognitionProps } from '#/lib/recognition-types'
+import type { Mode, RecognitionProps } from '#/lib/recognition-types'
+import { PointingDetector } from '#/lib/pointing-recognition'
+import type { PointingDebug } from '#/lib/pointing-recognition'
+
+// The Engine/Recognition contract is just RecognitionProps. `onDebug` is an
+// extra, optional tap for the test harness only — it is NOT part of the
+// boundary and the real game ignores it.
+type RecognitionComponentProps = RecognitionProps & {
+  onDebug?: (debug: PointingDebug) => void
+  /** Override the preview container styling (e.g. to fill a fixed-height slot). */
+  className?: string
+  /** Bump this to re-arm the detector mid-phase (test harness only). */
+  resetSignal?: number
+}
+
+const DEFAULT_CONTAINER_CLASS =
+  'relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black'
+
+const DEBUG_INTERVAL_MS = 80 // ~12 debug updates/sec, independent of frame rate
 
 // CDN sources for the MediaPipe WASM runtime + pose model.
 // Swap to self-hosted assets later if we want offline / deterministic builds.
@@ -22,15 +40,52 @@ type Status = 'idle' | 'loading' | 'running' | 'error'
  * pipeline and renders a mirrored preview with the skeleton overlay. No shape
  * or pointing algorithms yet, so `onShapeDetected` / `onPoint` never fire.
  */
-export default function Recognition({ mode }: RecognitionProps) {
+export default function Recognition({
+  mode,
+  onPoint,
+  onDebug,
+  className = DEFAULT_CONTAINER_CLASS,
+  resetSignal,
+}: RecognitionComponentProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const landmarkerRef = useRef<PoseLandmarker | null>(null)
   const rafRef = useRef<number | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
+  // Pointing algorithm + per-frame plumbing. Kept in refs so the render loop
+  // (set up once) always sees the latest mode/callback without restarting.
+  const detectorRef = useRef<PointingDetector>(new PointingDetector())
+  const modeRef = useRef<Mode>(mode)
+  const onPointRef = useRef(onPoint)
+  const onDebugRef = useRef(onDebug)
+  const lastTsRef = useRef<number | null>(null)
+  const lastDebugTsRef = useRef<number>(0)
+
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    onPointRef.current = onPoint
+  }, [onPoint])
+
+  useEffect(() => {
+    onDebugRef.current = onDebug
+  }, [onDebug])
+
+  // A phase change resets the detector so it fires exactly once per phase.
+  useEffect(() => {
+    modeRef.current = mode
+    detectorRef.current.reset()
+    lastTsRef.current = null
+  }, [mode])
+
+  // An explicit reset signal re-arms the detector mid-phase (test harness).
+  useEffect(() => {
+    if (resetSignal === undefined) return
+    detectorRef.current.reset()
+    lastTsRef.current = null
+  }, [resetSignal])
 
   useEffect(() => {
     let cancelled = false
@@ -93,7 +148,32 @@ export default function Recognition({ mode }: RecognitionProps) {
 
         const ctx = canvas.getContext('2d')
         if (ctx) {
-          const result = landmarker.detectForVideo(video, performance.now())
+          const now = performance.now()
+          const result = landmarker.detectForVideo(video, now)
+
+          // Pointing phase: feed the active pose to the algorithm. One simple
+          // call — all the logic lives in PointingDetector.
+          if (modeRef.current === 'pointing' && result.landmarks.length > 0) {
+            const last = lastTsRef.current
+            lastTsRef.current = now
+            if (last != null) {
+              const corner = detectorRef.current.update(
+                result.landmarks[0],
+                (now - last) / 1000,
+              )
+              if (corner) onPointRef.current?.(corner)
+            }
+
+            // Surface internals to the harness at a throttled rate.
+            if (
+              onDebugRef.current &&
+              now - lastDebugTsRef.current >= DEBUG_INTERVAL_MS
+            ) {
+              lastDebugTsRef.current = now
+              onDebugRef.current(detectorRef.current.getDebug())
+            }
+          }
+
           ctx.save()
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           // Mirror so "raise your right hand" maps to the right side of frame.
@@ -133,7 +213,7 @@ export default function Recognition({ mode }: RecognitionProps) {
   }, [])
 
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black">
+    <div className={className}>
       <video
         ref={videoRef}
         playsInline
