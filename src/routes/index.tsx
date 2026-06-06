@@ -502,7 +502,9 @@ function HomePage() {
     if (game.phase !== 'prep') return
     const timeout = window.setTimeout(() => {
       setGame((cur) => {
-        if (cur.phase !== 'prep' || cur.active?.uid !== activeUid) return cur
+        if (cur.phase !== 'prep' || !cur.active || cur.active.uid !== activeUid) {
+          return cur
+        }
         const ms = makingMs(cur.lines)
         return {
           ...cur,
@@ -522,7 +524,9 @@ function HomePage() {
     if (game.phase !== 'matched') return
     const timeout = window.setTimeout(() => {
       setGame((cur) => {
-        if (cur.phase !== 'matched' || cur.active?.uid !== activeUid) return cur
+        if (cur.phase !== 'matched' || !cur.active || cur.active.uid !== activeUid) {
+          return cur
+        }
         const ms = pointingMs(cur.lines)
         return {
           ...cur,
@@ -650,10 +654,10 @@ function HomePage() {
   return (
     <main className="page-wrap px-4 py-5 sm:py-8">
       <section className="island-shell rounded-[1.5rem] p-4 sm:p-6">
-        <h1 className="display-title mb-1 text-center text-4xl leading-none font-bold text-[var(--sea-ink)] sm:text-6xl">
+        <h1 className="display-title mb-1 text-center text-5xl leading-none font-bold text-[var(--sea-ink)] sm:text-7xl">
           Human Tetris
         </h1>
-        <p className="mb-4 text-center text-sm text-[var(--sea-ink-soft)]">
+        <p className="mb-4 text-center text-base text-[var(--sea-ink-soft)] sm:text-lg">
           Form the shape with your body, then point an arm at a corner to drop it.
         </p>
 
@@ -661,7 +665,7 @@ function HomePage() {
           {game.announcement}
         </p>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)_minmax(11rem,13rem)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)_minmax(15rem,18rem)]">
           {/* Camera */}
           <section
             aria-label="Camera"
@@ -784,7 +788,7 @@ function HomePage() {
                 className="game-board-stage grid w-fit rounded-md border border-[rgba(23,58,64,0.12)] [grid-template-columns:repeat(16,var(--cell-size))] [grid-template-rows:repeat(16,var(--cell-size))]"
                 style={
                   {
-                    '--cell-size': 'clamp(0.85rem, 4.4vw, 1.7rem)',
+                    '--cell-size': 'clamp(1rem, 5vw, 3rem)',
                   } as CSSProperties
                 }
               >
@@ -841,7 +845,7 @@ function HomePage() {
                   : 'Target'}
               </p>
               {game.phase === 'pointing' || game.phase === 'matched' ? (
-                <p className="m-0 text-sm font-semibold text-[var(--lagoon-deep)]">
+                <p className="m-0 text-base font-semibold text-[var(--lagoon-deep)]">
                   Point an arm at a corner.
                 </p>
               ) : targetVisual &&
@@ -849,10 +853,10 @@ function HomePage() {
                 <div className="flex items-center gap-2">
                   <ShapePreview shapeId={target!} />
                   <div>
-                    <p className="m-0 text-sm font-semibold text-[var(--sea-ink)]">
+                    <p className="m-0 text-base font-semibold text-[var(--sea-ink)]">
                       {targetVisual.label}
                     </p>
-                    <p className="m-0 text-xs text-[var(--sea-ink-soft)]">
+                    <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
                       {targetVisual.pose}
                     </p>
                   </div>
@@ -869,7 +873,7 @@ function HomePage() {
             </article>
 
             <div>
-              <h2 className="mb-2 text-sm font-semibold text-[var(--sea-ink)]">
+              <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
                 Shapes
               </h2>
               <div className="grid grid-cols-2 gap-2">
@@ -879,7 +883,7 @@ function HomePage() {
                     className="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--chip-bg)] p-2"
                   >
                     <ShapePreview shapeId={id} />
-                    <p className="m-0 text-[11px] font-semibold leading-tight text-[var(--sea-ink)]">
+                    <p className="m-0 text-sm font-semibold leading-tight text-[var(--sea-ink)]">
                       {SHAPE_VISUALS[id].label}
                     </p>
                   </article>
@@ -896,10 +900,10 @@ function HomePage() {
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <article className="rounded-xl border border-[var(--line)] bg-[var(--chip-bg)] p-2 text-center">
-      <p className="m-0 text-[10px] tracking-[0.08em] text-[var(--sea-ink-soft)] uppercase">
+      <p className="m-0 text-xs tracking-[0.08em] text-[var(--sea-ink-soft)] uppercase">
         {label}
       </p>
-      <p className="mt-0.5 text-lg font-semibold tabular-nums text-[var(--sea-ink)]">
+      <p className="mt-0.5 text-2xl font-semibold tabular-nums text-[var(--sea-ink)]">
         {value}
       </p>
     </article>
@@ -911,7 +915,7 @@ function ShapePreview({ shapeId }: { shapeId: ShapeId }) {
   const cells = SHAPES[shapeId]
   const { gradient } = SHAPE_VISUALS[shapeId]
   return (
-    <div aria-hidden="true" className="grid grid-cols-4 grid-rows-4 gap-0.5">
+    <div aria-hidden="true" className="grid grid-cols-4 grid-rows-4 gap-1">
       {Array.from({ length: 16 }).map((_, i) => {
         const x = i % 4
         const y = Math.floor(i / 4)
@@ -919,7 +923,7 @@ function ShapePreview({ shapeId }: { shapeId: ShapeId }) {
         return (
           <span
             key={i}
-            className="h-3 w-3 rounded-[2px]"
+            className="h-5 w-5 rounded-[2px]"
             style={
               occupied
                 ? {
