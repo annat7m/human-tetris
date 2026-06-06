@@ -81,8 +81,8 @@ const SHAPE_TABLE: Record<string, ShapeId> = {
   'BENT|BENT': 'SQUARE',
   'UP|OUT':    'L_0',    // the 4 L rotations come from which arm is up vs out + direction —
   'OUT|UP':    'L_90',   // confirm the exact assignment against the team's agreed mapping.
-  'DOWN|UP':   'L_180',
-  'UP|DOWN':   'L_270',
+  'OUT|DOWN':   'L_180',
+  'DOWN|OUT':   'L_270',
 };
 
 export function classifyShape(left: ArmState, right: ArmState): ShapeId | null {
