@@ -1,4 +1,4 @@
-Welcome to your new Human Tetris from the 2026-06-06 Hackathon! 
+Welcome to your new Human Tetris from the 2026-06-06 Hackathon!
 
 # Getting Started
 
@@ -25,6 +25,17 @@ This project uses [Vitest](https://vitest.dev/) for testing. There are no test f
 pnpm test
 ```
 
+## Linting and Formatting
+
+This project uses ESLint for linting and Prettier for formatting.
+
+```bash
+pnpm lint
+pnpm lint:fix
+pnpm format:check
+pnpm format
+```
+
 ## Styling
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
@@ -38,7 +49,6 @@ If you prefer not to use Tailwind CSS:
 3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
 4. Uninstall the packages: `pnpm remove @tailwindcss/vite tailwindcss`
 
-
 ## Deploy to Cloudflare Workers
 
 This project uses the Cloudflare Vite plugin (configured in `vite.config.ts`) and `wrangler.jsonc`:
@@ -50,8 +60,6 @@ This project uses the Cloudflare Vite plugin (configured in `vite.config.ts`) an
 For production env vars, run `pnpm exec wrangler secret put MY_VAR` for each secret you add. Public (non-secret) vars go in `wrangler.jsonc` under `vars`.
 
 KV, D1, R2, and Durable Object bindings are configured in `wrangler.jsonc` — see https://developers.cloudflare.com/workers/wrangler/configuration/.
-
-
 
 ## Routing
 
@@ -70,7 +78,7 @@ Now that you have two routes you can use a `Link` component to navigate between 
 To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router'
 ```
 
 Then anywhere in your JSX you can use it like so:
@@ -138,11 +146,11 @@ const getServerTime = createServerFn({
 // Use in a component
 function MyComponent() {
   const [time, setTime] = useState('')
-  
+
   useEffect(() => {
     getServerTime().then(setTime)
   }, [])
-  
+
   return <div>Server time: {time}</div>
 }
 ```

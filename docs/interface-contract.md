@@ -10,11 +10,15 @@ Two teams, one boundary: a single React component `<Recognition>`.
 // Every rotation is its own distinct shape. 7 total.
 export type ShapeId =
   | 'SQUARE'
-  | 'L_0' | 'L_90' | 'L_180' | 'L_270'
-  | 'LINE_V' | 'LINE_H';
+  | 'L_0'
+  | 'L_90'
+  | 'L_180'
+  | 'L_270'
+  | 'LINE_V'
+  | 'LINE_H'
 
-export type Corner = 'TL' | 'TR' | 'BL' | 'BR';
-export type Mode = 'idle' | 'making' | 'pointing';
+export type Corner = 'TL' | 'TR' | 'BL' | 'BR'
+export type Mode = 'idle' | 'making' | 'pointing'
 ```
 
 ## Shape catalog (the 7 shapes)
@@ -23,37 +27,72 @@ Cells are `[col, row]`, origin top-left. This is the shared source of truth for 
 
 ```ts
 export const SHAPES: Record<ShapeId, [number, number][]> = {
-  SQUARE: [[0,0],[1,0],[0,1],[1,1]],     // ##
-                                          // ##
+  SQUARE: [
+    [0, 0],
+    [1, 0],
+    [0, 1],
+    [1, 1],
+  ], // ##
+  // ##
 
-  L_0:   [[0,0],[0,1],[0,2],[1,2]],      // #.
-                                          // #.
-                                          // ##
-  L_90:  [[0,0],[1,0],[2,0],[0,1]],      // ###
-                                          // #..
-  L_180: [[0,0],[1,0],[1,1],[1,2]],      // ##
-                                          // .#
-                                          // .#
-  L_270: [[2,0],[0,1],[1,1],[2,1]],      // ..#
-                                          // ###
+  L_0: [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [1, 2],
+  ], // #.
+  // #.
+  // ##
+  L_90: [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [0, 1],
+  ], // ###
+  // #..
+  L_180: [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+  ], // ##
+  // .#
+  // .#
+  L_270: [
+    [2, 0],
+    [0, 1],
+    [1, 1],
+    [2, 1],
+  ], // ..#
+  // ###
 
-  LINE_V: [[0,0],[0,1],[0,2],[0,3]],     // #
-                                          // #
-                                          // #
-                                          // #
-  LINE_H: [[0,0],[1,0],[2,0],[3,0]],     // ####
-};
+  LINE_V: [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [0, 3],
+  ], // #
+  // #
+  // #
+  // #
+  LINE_H: [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+  ], // ####
+}
 ```
 
-| id | shape | blocks |
-|------|--------|--------|
-| `SQUARE` | 2×2 box | 4 |
-| `L_0` | L upright | 4 |
-| `L_90` | L rotated 90° CW | 4 |
-| `L_180` | L upside-down | 4 |
-| `L_270` | L rotated 270° CW | 4 |
-| `LINE_V` | vertical I | 4 |
-| `LINE_H` | horizontal I | 4 |
+| id       | shape             | blocks |
+| -------- | ----------------- | ------ |
+| `SQUARE` | 2×2 box           | 4      |
+| `L_0`    | L upright         | 4      |
+| `L_90`   | L rotated 90° CW  | 4      |
+| `L_180`  | L upside-down     | 4      |
+| `L_270`  | L rotated 270° CW | 4      |
+| `LINE_V` | vertical I        | 4      |
+| `LINE_H` | horizontal I      | 4      |
 
 Recognition must map a body pose to exactly one of these 7 ids.
 
@@ -62,11 +101,11 @@ Recognition must map a body pose to exactly one of these 7 ids.
 ```ts
 interface RecognitionProps {
   // Engine -> Recognition
-  mode: Mode;   // tells Recognition what to look for; 'idle' = do nothing
+  mode: Mode // tells Recognition what to look for; 'idle' = do nothing
 
   // Recognition -> Engine (each fires ONCE per phase, deterministic)
-  onShapeDetected: (shape: ShapeId) => void; // during 'making'
-  onPoint: (corner: Corner) => void;         // during 'pointing'
+  onShapeDetected: (shape: ShapeId) => void // during 'making'
+  onPoint: (corner: Corner) => void // during 'pointing'
 }
 ```
 
@@ -75,9 +114,11 @@ Recognition self-renders its own `<video>` preview. Engine gives it a slot, not 
 ## What each team SUPPLIES
 
 **Engine → Recognition (prop):**
+
 - `mode` — current phase. `making` = detect a body shape, `pointing` = detect a pointed corner, `idle` = nothing.
 
 **Recognition → Engine (callbacks):**
+
 - `onShapeDetected(shapeId)` — fires once when Recognition decides a shape is formed. Reports one of the 7 ids. Recognition does NOT know the target and does NOT judge right/wrong.
 - `onPoint(corner)` — fires once when Recognition decides a corner is pointed at.
 
