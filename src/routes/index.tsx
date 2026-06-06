@@ -1,86 +1,245 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: App })
+type Coordinate = [number, number]
 
-function App() {
+type ShapeDefinition = {
+  id: 'SQUARE' | 'L_0' | 'L_90' | 'L_180' | 'L_270' | 'LINE_V' | 'LINE_H'
+  label: string
+  cells: readonly Coordinate[]
+  gradient: {
+    highlight: string
+    base: string
+    shadow: string
+  }
+}
+
+const BOARD_SIZE = 16
+
+const PIECES: readonly ShapeDefinition[] = [
+  {
+    id: 'SQUARE',
+    label: 'Square',
+    cells: [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ],
+    gradient: {
+      highlight: '#ffe9a3',
+      base: '#efbf3c',
+      shadow: '#c68f09',
+    },
+  },
+  {
+    id: 'L_0',
+    label: 'Arm Low Right',
+    cells: [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ],
+    gradient: {
+      highlight: '#a6e3ff',
+      base: '#3a9ed8',
+      shadow: '#1f67a5',
+    },
+  },
+  {
+    id: 'L_90',
+    label: 'Arm Low Left',
+    cells: [
+      [1, 0],
+      [1, 1],
+      [0, 2],
+      [1, 2],
+    ],
+    gradient: {
+      highlight: '#ffc2c5',
+      base: '#eb6c72',
+      shadow: '#ab2f35',
+    },
+  },
+  {
+    id: 'L_180',
+    label: 'Arm High Left',
+    cells: [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [1, 2],
+    ],
+    gradient: {
+      highlight: '#c8f0c6',
+      base: '#6bcf72',
+      shadow: '#2e9f47',
+    },
+  },
+  {
+    id: 'L_270',
+    label: 'Arm High Right',
+    cells: [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [0, 2],
+    ],
+    gradient: {
+      highlight: '#ffdab0',
+      base: '#f49c45',
+      shadow: '#bd5f12',
+    },
+  },
+  {
+    id: 'LINE_V',
+    label: 'Stand Tall',
+    cells: [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ],
+    gradient: {
+      highlight: '#cfb9ff',
+      base: '#8d73e0',
+      shadow: '#563ca0',
+    },
+  },
+  {
+    id: 'LINE_H',
+    label: 'Arms Out',
+    cells: [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+    ],
+    gradient: {
+      highlight: '#ffccf0',
+      base: '#ed74c5',
+      shadow: '#ad2d85',
+    },
+  },
+] as const
+
+const BOARD_INDEX = Array.from({ length: BOARD_SIZE * BOARD_SIZE })
+
+function hasCell(shape: ShapeDefinition, x: number, y: number) {
+  return shape.cells.some((cell) => cell[0] === x && cell[1] === y)
+}
+
+export const Route = createFileRoute('/')({ component: HomePage })
+
+function HomePage() {
   return (
-    <main className="page-wrap px-4 pt-14 pb-8">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div className="pointer-events-none absolute -top-24 -left-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div className="pointer-events-none absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p className="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
+    <main className="page-wrap px-4 py-5 sm:py-8">
+      <section className="island-shell rounded-[1.5rem] p-4 sm:p-6">
+        <h1 className="display-title mb-4 whitespace-nowrap text-center text-4xl leading-none font-bold text-[var(--sea-ink)] sm:text-6xl">
+          Shape Up!
         </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,15rem)]">
+          <section
+            aria-label="Game board preview"
+            className="rounded-2xl border border-[var(--chip-line)] bg-[var(--surface)] p-4"
           >
-            About This Starter
-          </a>
-          <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-          >
-            Router Guide
-          </a>
-        </div>
-      </section>
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <article className="rounded-xl border border-[var(--line)] bg-[var(--chip-bg)] p-3">
+                <p className="m-0 text-xs uppercase tracking-[0.08em] text-[var(--sea-ink-soft)]">
+                  Score
+                </p>
+                <p className="mt-1 text-xl font-semibold text-[var(--sea-ink)]">
+                  0000
+                </p>
+              </article>
+              <article className="rounded-xl border border-[var(--line)] bg-[var(--chip-bg)] p-3">
+                <p className="m-0 text-xs uppercase tracking-[0.08em] text-[var(--sea-ink-soft)]">
+                  Timer
+                </p>
+                <p className="mt-1 text-xl font-semibold text-[var(--sea-ink)]">
+                  00:00
+                </p>
+              </article>
+            </div>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
+            <div
+              className="mx-auto w-fit overflow-auto rounded-xl border border-[var(--line)] bg-[color-mix(in oklab, var(--surface-strong) 80%, var(--sand))] p-2"
+              aria-label="Empty 16 by 16 game board"
+              role="img"
+            >
+              <div
+                className="grid w-fit rounded-md border border-[rgba(23,58,64,0.12)] [grid-template-columns:repeat(16,var(--cell-size))] [grid-template-rows:repeat(16,var(--cell-size))]"
+                style={
+                  {
+                    '--cell-size': 'clamp(0.85rem, 4vw, 1.6rem)',
+                  } as React.CSSProperties
+                }
+              >
+                {BOARD_INDEX.map((_, index) => {
+                  return (
+                    <span
+                      key={index}
+                      aria-label="Empty board cell"
+                      className="h-[var(--cell-size)] w-[var(--cell-size)] border-[2px] border-[rgba(23,58,64,0.28)] bg-[color-mix(in oklab, var(--surface-strong) 86%, white)]"
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+
+          <aside
+            aria-label="Allowed piece catalog"
+            className="rounded-2xl border border-[var(--chip-line)] bg-[var(--surface)] p-3"
           >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
+            <h2 className="mb-3 text-sm font-semibold text-[var(--sea-ink)]">
+              Pieces
             </h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="island-shell mt-8 rounded-2xl p-6">
-        <p className="island-kicker mb-2">Quick Start</p>
-        <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> and{' '}
-            <code>src/components/Footer.tsx</code> for brand links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+              {PIECES.map((shape) => (
+                <article
+                  key={shape.id}
+                  className="grid grid-cols-[4.75rem_1fr] items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--chip-bg)] p-2"
+                >
+                  <div
+                    aria-hidden="true"
+                    className="grid w-fit rounded-md bg-transparent"
+                  >
+                    <div className="grid grid-cols-4 grid-rows-4 gap-0.5">
+                      {Array.from({ length: 16 }).map((_, i) => {
+                        const x = i % 4
+                        const y = Math.floor(i / 4)
+                        const occupied = hasCell(shape, x, y)
+                        return (
+                          <span
+                            key={`${shape.id}-${x}-${y}`}
+                            className="h-3.5 w-3.5 rounded-[2px] sm:h-4 sm:w-4"
+                            style={
+                              occupied
+                                ? {
+                                    backgroundImage: `linear-gradient(to bottom left, ${shape.gradient.highlight} 0%, ${shape.gradient.base} 55%, ${shape.gradient.shadow} 100%)`,
+                                    border: '1px solid rgba(23, 58, 64, 0.28)',
+                                    boxShadow:
+                                      'inset 0 1px 0 rgba(255, 255, 255, 0.34)',
+                                  }
+                                : {
+                                    background: 'transparent',
+                                    border: '1px solid transparent',
+                                  }
+                            }
+                          />
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <p className="m-0 text-xs font-semibold text-[var(--sea-ink)]">
+                    {shape.label}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </aside>
+        </div>
       </section>
     </main>
   )
