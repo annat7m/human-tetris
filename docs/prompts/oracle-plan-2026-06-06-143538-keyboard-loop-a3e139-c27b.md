@@ -43,7 +43,7 @@
 
 ### Files
 ### Selected Files
-/Users/david/Developer/Projects/Current/2026-06-06-hackathon/human-tetris/
+/Users/david/Developer/Projects/Current/2026-06-06-hackathon/body-blocks/
 ├── docs/
 │   └── interface-contract.md — 1,036 tokens (full)
 ├── prompt-exports/

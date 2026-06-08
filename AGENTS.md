@@ -14,9 +14,9 @@ Before substantial work:
 
 ## Scaffolding
 
-- App name: `human-tetris`
+- App name: `body-blocks`
 - Exact TanStack CLI command used:
-  `npx @tanstack/cli@latest create human-tetris --agent --tailwind --add-ons cloudflare`
+  `npx @tanstack/cli@latest create body-blocks --agent --tailwind --add-ons cloudflare`
 - Follow-up TanStack Intent commands run:
   - `npx @tanstack/intent@latest install`
   - `npx @tanstack/intent@latest list`
@@ -52,7 +52,7 @@ Before substantial work:
 
 ## Deployment Notes
 
-- Worker name is `human-tetris` in `wrangler.jsonc`.
+- Worker name is `body-blocks` in `wrangler.jsonc`.
 - `wrangler.jsonc` uses `compatibility_flags: ["nodejs_compat"]` and `main: "@tanstack/react-start/server-entry"`.
 - The Cloudflare Vite plugin is configured for TanStack Start SSR with `viteEnvironment: { name: 'ssr' }`.
 - Run `pnpm exec wrangler login` before the first deployment.

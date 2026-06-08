@@ -1,4 +1,4 @@
-Welcome to your new Human Tetris from the 2026-06-06 Hackathon!
+Welcome to the Body Blocks project from the 2026-06-06 Hackathon!
 
 # Getting Started
 

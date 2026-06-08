@@ -90,7 +90,7 @@ Goal: A game board that allows for only 7 shapes to exist on it. A nice looking 
 ---
 
 
-Complete the first visible slice of the Human Tetris game on the TanStack Start homepage. Build a static, polished homepage experience centered around a 16×16 game board and the seven-shape catalog only. The homepage should be the primary user-facing experience for this issue; shared components are acceptable if useful, but do not add other pages or broaden the product beyond this homepage board presentation.
+Complete the first visible slice of the Body Blocks game on the TanStack Start homepage. Build a static, polished homepage experience centered around a 16×16 game board and the seven-shape catalog only. The homepage should be the primary user-facing experience for this issue; shared components are acceptable if useful, but do not add other pages or broaden the product beyond this homepage board presentation.
 
 The board must be an empty 16×16 grid at initial render. It should be centered, responsive, visually clear, and easy to scan. Do not implement placement, dragging, recognition, target matching, comparison, scoring rules, timers, countdown behavior, animations, or any other gameplay mechanics. Include visible mock “Score” and mock “Timer” UI placeholders only; they must be non-functional and must not update or imply active game logic.
 
