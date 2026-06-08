@@ -655,7 +655,7 @@ function HomePage() {
     <main className="page-wrap px-4 py-5 sm:py-8">
       <section className="island-shell rounded-[1.5rem] p-4 sm:p-6">
         <h1 className="display-title mb-1 text-center text-5xl leading-none font-bold text-[var(--sea-ink)] sm:text-7xl">
-          Human Tetris
+          Body Blocks
         </h1>
         <p className="mb-4 text-center text-base text-[var(--sea-ink-soft)] sm:text-lg">
           Form the shape with your body, then point an arm at a corner to drop it.

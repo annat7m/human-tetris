@@ -1,4 +1,4 @@
-# Human-Tetris — Team Interface Contract
+# Body-Blocks — Team Interface Contract
 
 Two teams, one boundary: a single React component `<Recognition>`.
 **Engine** owns everything game: board, target shape, timers, comparison, scoring, animations, random fallback corners.
