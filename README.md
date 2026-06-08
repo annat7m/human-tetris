@@ -1,33 +1,123 @@
-Welcome to the Body Blocks project from the 2026-06-06 Hackathon!
+# Body Blocks
 
-# Getting Started
+A lively, fun, and silly interactive game built in under 3 hours!
 
-To run this application:
+The application uses a computer's camera to track multiple body parts via **MediaPipe Tasks Vision** pose detection and recognition. It displays a time limit during which the user must contort their body into one of 7 random "body block" shapes appearing on the screen. Once successfully matched, they point to the corner they want it to go into. Over time, layering of multiple body blocks brings them closer and closer to the person.
+
+The ultimate reward for us as engineers was watching a smiling 7-year-old stand up, move around, and play with the game to see how it works!
+
+---
+
+## Hackathon & Submission Details
+
+This project was built as part of the **3-hour Hackathon** [**"Claude for Everyone: Community Build"**](https://luma.com/rvxe5jki?tk=u8yzXm) on Saturday, June 6th, 2026, held at the Upstart Collective in Portland, Oregon, US.
+
+### Timeline & Branch
+
+- **First Commit:** `2026-06-06 12:35:44` (PDT)
+- **Last Commit:** `2026-06-06 15:14:14` (PDT)
+- **Total Duration:** 158 minutes (2 hours, 38 minutes)
+
+The final submission code is locked into the **`done-in-158-minutes`** branch.
+
+- **Branch Link:** [done-in-158-minutes branch](https://github.com/annat7m/body-blocks/tree/done-in-158-minutes)
+
+---
+
+## The Team
+
+- **Anna Tymoshenko** - [GitHub](https://github.com/annat7m) · [LinkedIn](https://www.linkedin.com/in/anna-tymoshenko-b803172b6/)
+- **Fedya Semenov** - [GitHub](https://github.com/FedyaS) · [LinkedIn](https://www.linkedin.com/in/fedor-semenov-ml/)
+- **David Schargel** - [GitHub](https://github.com/DavidSchargel) · [LinkedIn](https://www.linkedin.com/in/davidschargel/)
+- **Isak Dzhumaliev** - [GitHub](https://github.com/dzhumaliev/) · [LinkedIn](https://www.linkedin.com/in/isak-dzhumaliev/)
+
+---
+
+## Key Technologies
+
+### Core Features & Pose Recognition
+
+- **MediaPipe Tasks Vision** - Pose detection and recognition for body gestures.
+
+### Frontend Framework & Routing
+
+- **React 19** - UI framework for building the application.
+- **TanStack Start** - Full-stack React framework with SSR support.
+- **TanStack Router** - File-based routing system.
+- **TypeScript** - Type-safe JavaScript development.
+
+### Styling & Assets
+
+- **Tailwind CSS v4** - Utility-first CSS framework for styling.
+- **Lucide React** - Icon library.
+
+### Shortcuts & Configuration
+
+- **TanStack React Hotkeys** - Keyboard shortcut handling.
+
+### Tooling & Infrastructure
+
+- **Vite** - Build tool and development server.
+- **pnpm** - Package manager.
+- **Vitest** - Testing framework.
+- **ESLint** - Code linting.
+- **Prettier** - Code formatting.
+- **@tanstack/devtools-vite** - Development tools integration _(installed but not used in hackathon)_.
+- **Cloudflare Workers** - Serverless deployment platform _(installed but not used in hackathon)_.
+- **Wrangler** - Cloudflare CLI tool for deployment _(installed but not used in hackathon)_.
+
+### AI Assistance
+
+- **Claude Code** - Agentic CLI tool by Anthropic for terminal-based code editing, testing, and execution.
+- **pi Coding Agent** - Agent used with [Nico Balion's pi-interview-tool](https://github.com/nicobailon/pi-interview-tool) to refine development tasks.
+- **RepoPrompt** - Context builder and prompt utility for supplying codebase context to LLMs.
+- **VS Code** - IDE/text editor used for writing code and debugging the project.
+- **GPT 5.5** - LLM model used for architectural planning and code generation.
+- **Opus 4.8** - LLM model used for advanced reasoning and structural guidance.
+- **Sonnet 4.6** - LLM model used for React UI design and state management logic.
+
+---
+
+## Supporting Media
+
+There are some supporting media files in [docs/media/](https://github.com/annat7m/body-blocks/tree/main/docs/media) that were not part of the project itself, but are highly worth seeing, especially the 7-year-old playing with it:
+
+- **7-Year-Old Playing the Game:**
+  - File: [7-year-old-using-the-app.mp4](https://github.com/annat7m/body-blocks/blob/main/docs/media/7-year-old-using-the-app.mp4)
+- **3 of the 7 Shapes:**
+  - File: [3-of-7-shapes.jpg](https://github.com/annat7m/body-blocks/blob/main/docs/media/3-of-7-shapes.jpg)
+- **Fedya at the Whiteboard as We Started:**
+  - File: [fedya-at-whiteboard.jpg](https://github.com/annat7m/body-blocks/blob/main/docs/media/fedya-at-whiteboard.jpg)
+- **Fedya Standing In Winco at 11pm the Night Before the Hackathon:**
+  - File: [2026-06-05-fedya-winco-demo.mov](https://github.com/annat7m/body-blocks/blob/main/docs/media/2026-06-05-fedya-winco-demo.mov)
+
+
+## Development Commands
+
+To run this application locally:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-# Building For Production
+### Production Build
 
-To build this application for production:
+To build the application for production:
 
 ```bash
 pnpm build
 ```
 
-## Testing
+### Testing
 
-This project uses [Vitest](https://vitest.dev/) for testing. There are no test files yet; the scaffolded test script exits successfully until tests are added.
+This project uses [Vitest](https://vitest.dev/) for testing:
 
 ```bash
 pnpm test
 ```
 
-## Linting and Formatting
-
-This project uses ESLint for linting and Prettier for formatting.
+### Linting and Formatting
 
 ```bash
 pnpm lint
@@ -35,176 +125,3 @@ pnpm lint:fix
 pnpm format:check
 pnpm format
 ```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Replace Tailwind utility classes in `src/routes` and `src/components` with your own styling
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `pnpm remove @tailwindcss/vite tailwindcss`
-
-## Deploy to Cloudflare Workers
-
-This project uses the Cloudflare Vite plugin (configured in `vite.config.ts`) and `wrangler.jsonc`:
-
-1. Authenticate with Cloudflare: `pnpm exec wrangler login`
-2. Build locally: `pnpm build`
-3. Deploy: `pnpm deploy` (runs `pnpm build && wrangler deploy`)
-
-For production env vars, run `pnpm exec wrangler secret put MY_VAR` for each secret you add. Public (non-secret) vars go in `wrangler.jsonc` under `vars`.
-
-KV, D1, R2, and Durable Object bindings are configured in `wrangler.jsonc` — see https://developers.cloudflare.com/workers/wrangler/configuration/.
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from '@tanstack/react-router'
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
